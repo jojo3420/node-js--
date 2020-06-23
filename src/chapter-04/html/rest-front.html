@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>RESTfull Server</title>
+  <link rel="stylesheet" href="./style.css"/>
+</head>
+<body>
+<nav>
+  <a href="/">HomePage</a>
+  <a href="/about">About</a>
+</nav>
+<div>
+  <form id="form">
+    <input type="text" id="username">
+    <button type="submit">submit</button>
+  </form>
+</div>
+<div id="list"></div>
+<script>
+
+  function modifyUser(user) {
+
+  }
+
+  function getUser() {
+    // console.log('getUser()');
+    const xhr = new XMLHttpRequest();
+    xhr.onload = function () {
+      if (xhr.status === 200) {
+        const users = JSON.parse(xhr.responseText);
+        const listEl = document.getElementById('list');
+        listEl.innerHTML = ''; // 초기화
+        Object.keys(users).map(key => {
+          const divEl = document.createElement('div');
+          const spanEl = document.createElement('span');
+          spanEl.textContent = users[key].username;
+          const modifyButton = document.createElement('button');
+          const deleteButton = document.createElement('button');
+          modifyButton.textContent = '수정';
+          deleteButton.textContent = '삭제';
+          modifyButton.addEventListener('click', function () {
+            const username = window.prompt('변경할 이름을 입력하세요');
+            if (!username) {
+              return alert('변경할 이름을 입력하세요.');
+            }
+            const xhr = new XMLHttpRequest();
+            xhr.onload = function () {
+              if (xhr.status === 200) {
+                console.log(xhr.responseText);
+                getUser();
+              }
+            }
+            xhr.open('PUT', `http://localhost:4000/users/${key}`);  // 수정 요청
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(JSON.stringify({ id: users[key].id,  username }));
+          });
+          deleteButton.addEventListener('click', function () {
+            const xhr2 = new XMLHttpRequest();
+            xhr2.onload = function () {
+              console.log(xhr2);
+              if (xhr2.status === 200) {
+                console.log(xhr2.responseText);
+                getUser();
+              } else {
+                console.error(xhr2.responseText);
+              }
+            }
+            xhr2.open('DELETE', `http://localhost:4000/users/${users[key].id}`); // 삭제 요청
+            xhr2.send();
+          });
+
+          divEl.appendChild(spanEl);
+          divEl.appendChild(modifyButton);
+          divEl.appendChild(deleteButton);
+          listEl.appendChild(divEl);
+        });
+      } else {
+        console.error(xhr.responseText);
+      }
+    };
+
+    xhr.open('GET', 'http://localhost:4000/users');
+    xhr.send();
+  } // function
+
+  // Window 렌더링 완료시 요청
+  window.onload = getUser;
+
+
+  // 멤버 신규 등록 -
+  const formEl = document.getElementById('form');
+  formEl.addEventListener('submit', e => {
+    e.preventDefault();
+    // formEl.action = 'http://localhost:4000'
+    console.log('submit.');
+    const userNameEl = e.target.username;
+    if (!userNameEl.value) {
+      return alert('이름을 입력하세요.');
+    }
+    const xhr = new XMLHttpRequest();
+    xhr.onload = function () {
+      if (xhr.status === 200) {
+        console.log(xhr.responseText);
+        getUser();
+      } else {
+        console.error(xhr.responseText);
+      }
+    };
+
+    xhr.open('POST', 'http://localhost:4000/users');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(JSON.stringify({username: userNameEl.value}));
+    userNameEl.value = '';
+  });
+
+
+</script>
+</body>
+</html>

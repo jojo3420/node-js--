@@ -1,0 +1,2 @@
+read-me-original file
+please copy read-me-copy.txt
